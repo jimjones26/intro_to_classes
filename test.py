@@ -1,14 +1,29 @@
+from typing import Any, Dict
+import logging
+
+
 # ------------------------------------------------------------------
 # Component base class
 # ------------------------------------------------------------------
-class Component:
-    def __init__(self, name):
-        self.name = name
-        self.inputs = {}
-        self.outputs = {}
+class BaseComponent:
+    """
+    BaseComponent class for defining components with input and output dictionaries.
+    """
 
-    def execute(self):
-        raise NotImplementedError("Each component must implement the execute method.")
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.inputs: Dict[str, Any] = {}
+        self.outputs: Dict[str, Any] = {}
+
+    def execute(self) -> None:
+        """
+        Logs the execution of the component and raises a NotImplementedError.
+        Subclasses should override this method.
+        """
+        logging.info(f"Executing component: {self.name}")
+        raise NotImplementedError(
+            "The `execute` method is not implemented in this component. Please override this method in your subclass."
+        )
 
 
 # ------------------------------------------------------------------
@@ -19,7 +34,7 @@ class Pipeline:
         self.components = []
         self.connections = {}
 
-    def add_component(self, component: Component):
+    def add_component(self, component: BaseComponent):
         self.components.append(component)
 
     def connect(self, output_component, output_key, input_component, input_key):
@@ -46,7 +61,7 @@ class Pipeline:
 # ------------------------------------------------------------------
 # Sample text preprocessor component
 # ------------------------------------------------------------------
-class TextPreprocessor(Component):
+class TextPreprocessor(BaseComponent):
     def __init__(self):
         super().__init__("Text Preprocessor")
 
@@ -61,7 +76,7 @@ class TextPreprocessor(Component):
 # ------------------------------------------------------------------
 # Sample text length caluculator component
 # ------------------------------------------------------------------
-class TextLengthCalculator(Component):
+class TextLengthCalculator(BaseComponent):
     def __init__(self):
         super().__init__("Text Length Calculator")
 
