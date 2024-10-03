@@ -88,7 +88,7 @@ class TextLengthCalculator(BaseComponent):
 
 
 # ------------------------------------------------------------------
-# Instantiate component and pipeline
+# Instantiate components and pipeline
 # ------------------------------------------------------------------
 process_text = TextPreprocessor()
 calculate_length = TextLengthCalculator()
@@ -109,5 +109,7 @@ pipeline.connect(process_text, "processed_text", calculate_length, "processed_te
 # ------------------------------------------------------------------
 # Run pipeline
 # ------------------------------------------------------------------
-final_output = pipeline.run({"initial_input": "HelLo WorLD"})
+final_output = pipeline.run(
+    {"initial_input": "HelLo WorLD IS a GREat sonG about ThE EnD of theE WORLd."}
+)
 print("Final output:", final_output)
