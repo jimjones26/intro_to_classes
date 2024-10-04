@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 import logging
 
 
@@ -7,13 +7,15 @@ import logging
 # ------------------------------------------------------------------
 class BaseComponent:
     """
-    BaseComponent class for defining components with input and output dictionaries.
+    BaseComponent class for defining components with dynamic input and output dictionaries.
     """
 
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self, name: str, input_keys: List[str], output_keys: List[str]
+    ) -> None:
         self.name = name
-        self.inputs: Dict[str, Any] = {}
-        self.outputs: Dict[str, Any] = {}
+        self.inputs: Dict[str, Any] = {key: None for key in input_keys}
+        self.outputs: Dict[str, Any] = {key: None for key in output_keys}
 
     def execute(self) -> None:
         """
@@ -32,17 +34,36 @@ class BaseComponent:
 class Pipeline:
     def __init__(self):
         self.components = []
-        self.connections = {}
+        self.connections: Dict[
+            Tuple[BaseComponent, str], Tuple[BaseComponent, str]
+        ] = {}
 
     def add_component(self, component: BaseComponent):
         self.components.append(component)
 
-    def connect(self, output_component, output_key, input_component, input_key):
+    def connect(
+        self,
+        output_component: BaseComponent,
+        output_key: str,
+        input_component: BaseComponent,
+        input_key: str,
+    ):
+        if output_key not in output_component.outputs:
+            raise ValueError(
+                f"{output_component.name} does not have output key '{output_key}'"
+            )
+        if input_key not in input_component.inputs:
+            raise ValueError(
+                f"{input_component.name} does not have input key '{input_key}'"
+            )
+
         self.connections[(output_component, output_key)] = (input_component, input_key)
 
-    def run(self, initial_input: Dict[str, int]) -> Dict[str, int]:
+    def run(self, initial_input: Dict[str, Any]) -> Dict[str, Any]:
         # Initialize the first component's input as a dictionary
-        self.components[0].inputs = initial_input
+        for component in self.components:
+            if component.name == "Text Preprocessor":
+                component.inputs.update(initial_input)
 
         for component in self.components:
             component.execute()
@@ -51,11 +72,11 @@ class Pipeline:
                 input_component,
                 input_key,
             ) in self.connections.items():
-                if component == output_component:
+                if component == output_component and output_key in component.outputs:
                     input_component.inputs[input_key] = component.outputs[output_key]
 
         # Assuming the last component's output is the final output
-        return self.components[-1].outputs
+        return {component.name: component.outputs for component in self.components}
 
 
 # ------------------------------------------------------------------
@@ -63,13 +84,17 @@ class Pipeline:
 # ------------------------------------------------------------------
 class TextPreprocessor(BaseComponent):
     def __init__(self):
-        super().__init__("Text Preprocessor")
+        super().__init__(
+            "Text Preprocessor",
+            input_keys=["initial_input"],
+            output_keys=["processed_text"],
+        )
 
     def execute(self):
-        if "initial_input" in self.inputs:
+        if self.inputs["initial_input"] is not None:
             # Example preprocessing: convert to lowercase
             processed_text = self.inputs["initial_input"].lower()
-            self.outputs = {"processed_text": processed_text}
+            self.outputs["processed_text"] = processed_text
             print(f"{self.name} output: {self.outputs}")
 
 
@@ -78,12 +103,16 @@ class TextPreprocessor(BaseComponent):
 # ------------------------------------------------------------------
 class TextLengthCalculator(BaseComponent):
     def __init__(self):
-        super().__init__("Text Length Calculator")
+        super().__init__(
+            "Text Length Calculator",
+            input_keys=["processed_text"],
+            output_keys=["text_length"],
+        )
 
     def execute(self):
-        if "processed_text" in self.inputs:
+        if self.inputs["processed_text"] is not None:
             text_length = len(self.inputs["processed_text"])
-            self.outputs = {"text_length": text_length}
+            self.outputs["text_length"] = text_length
             print(f"{self.name} output: {self.outputs}")
 
 
