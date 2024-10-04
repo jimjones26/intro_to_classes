@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Tuple
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 
 # ------------------------------------------------------------------
 # Component base class
@@ -33,12 +35,12 @@ class BaseComponent:
 # ------------------------------------------------------------------
 class Pipeline:
     def __init__(self):
-        self.components = []
+        self.components: List[BaseComponent] = []
         self.connections: Dict[
             Tuple[BaseComponent, str], Tuple[BaseComponent, str]
         ] = {}
 
-    def add_component(self, component: BaseComponent):
+    def add_component(self, component: BaseComponent) -> None:
         self.components.append(component)
 
     def connect(
@@ -47,7 +49,7 @@ class Pipeline:
         output_property: str,
         input_component: BaseComponent,
         input_property: str,
-    ):
+    ) -> None:
         # Store the connection using component instances and property names
         self.connections[(output_component, output_property)] = (
             input_component,
@@ -55,13 +57,20 @@ class Pipeline:
         )
 
     def run(self, initial_input: Dict[str, Any]) -> Dict[str, Any]:
-        # Initialize the first component's input as a dictionary
-        for component in self.components:
-            if component.name == "Text Preprocessor":
-                component.inputs.update(initial_input)
+        if not self.components:
+            logging.error("No components in the pipeline.")
+            return {}
+
+        # Initialize the first component's input
+        self.components[0].inputs.update(initial_input)
 
         for component in self.components:
-            component.execute()
+            try:
+                component.execute()
+            except NotImplementedError as e:
+                logging.error(f"Execution error in component {component.name}: {e}")
+                continue
+
             # Transfer outputs to connected inputs
             for (output_component, output_key), (
                 input_component,
