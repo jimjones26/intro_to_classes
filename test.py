@@ -50,6 +50,14 @@ class Pipeline:
         input_component: BaseComponent,
         input_property: str,
     ) -> None:
+        # Check if the specified keys exist in the components' input and output dictionaries
+        if (
+            output_property not in output_component.outputs
+            or input_property not in input_component.inputs
+        ):
+            raise ValueError(
+                "Invalid connection: Output or input property does not exist."
+            )
         # Store the connection using component instances and property names
         self.connections[(output_component, output_property)] = (
             input_component,
