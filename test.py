@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Tuple
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 # ------------------------------------------------------------------
@@ -104,17 +104,22 @@ class TextPreprocessor(BaseComponent):
     def __init__(self):
         super().__init__(
             "Text Preprocessor",
-            input_keys=["initial_input"],
+            input_keys=["input_text"],
             output_keys=["processed_text"],
         )
+
+    @property
+    def input_text(self):
+        return self.inputs["input_text"]
 
     @property
     def processed_text(self):
         return self.outputs["processed_text"]
 
     def execute(self):
-        if self.inputs["initial_input"] is not None:
-            processed_text = self.inputs["initial_input"].lower()
+        if self.inputs["input_text"] is not None:
+            # Convert to lowercase and remove extra spaces
+            processed_text = " ".join(self.inputs["input_text"].lower().split())
             self.outputs["processed_text"] = processed_text
             logging.info(f"{self.name} output: {self.outputs}")
 
@@ -187,28 +192,37 @@ class StringIntComparator(BaseComponent):
 
 
 # ------------------------------------------------------------------
+# Instantiate new pipeline
+# ------------------------------------------------------------------
+pipeline = Pipeline()
+
+# ------------------------------------------------------------------
 # Instantiate components and pipeline
 # ------------------------------------------------------------------
+validate_string_length = StringIntComparator()
 process_text = TextPreprocessor()
 calculate_length = TextLengthCalculator()
-
-pipeline = Pipeline()
 
 # ------------------------------------------------------------------
 # Add component to pipeline
 # ------------------------------------------------------------------
+pipeline.add_component(validate_string_length)
 pipeline.add_component(process_text)
 pipeline.add_component(calculate_length)
 
 # ------------------------------------------------------------------
 # Connect components
 # ------------------------------------------------------------------
+pipeline.connect(validate_string_length, "output_string", process_text, "input_text")
 pipeline.connect(process_text, "processed_text", calculate_length, "input_text")
 
 # ------------------------------------------------------------------
 # Run pipeline
 # ------------------------------------------------------------------
 final_output = pipeline.run(
-    {"initial_input": "HelLo WorLD IS a GREat sonG about ThE EnD of thE WORLd."}
+    {
+        "input_string": "HelLo    WorLD        IS           a GREat             sonG about           ThE EnD of thE WORLd.            ",
+        "input_int": 10,
+    }
 )
 print("Final output:", final_output)
