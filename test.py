@@ -44,20 +44,15 @@ class Pipeline:
     def connect(
         self,
         output_component: BaseComponent,
-        output_key: str,
+        output_property: str,
         input_component: BaseComponent,
-        input_key: str,
+        input_property: str,
     ):
-        if output_key not in output_component.outputs:
-            raise ValueError(
-                f"{output_component.name} does not have output key '{output_key}'"
-            )
-        if input_key not in input_component.inputs:
-            raise ValueError(
-                f"{input_component.name} does not have input key '{input_key}'"
-            )
-
-        self.connections[(output_component, output_key)] = (input_component, input_key)
+        # Store the connection using component instances and property names
+        self.connections[(output_component, output_property)] = (
+            input_component,
+            input_property,
+        )
 
     def run(self, initial_input: Dict[str, Any]) -> Dict[str, Any]:
         # Initialize the first component's input as a dictionary
@@ -90,9 +85,12 @@ class TextPreprocessor(BaseComponent):
             output_keys=["processed_text"],
         )
 
+    @property
+    def processed_text(self):
+        return self.outputs["processed_text"]
+
     def execute(self):
         if self.inputs["initial_input"] is not None:
-            # Example preprocessing: convert to lowercase
             processed_text = self.inputs["initial_input"].lower()
             self.outputs["processed_text"] = processed_text
             print(f"{self.name} output: {self.outputs}")
@@ -105,14 +103,23 @@ class TextLengthCalculator(BaseComponent):
     def __init__(self):
         super().__init__(
             "Text Length Calculator",
-            input_keys=["processed_text"],
+            input_keys=["input_text"],  # Keep this as is for flexibility
             output_keys=["text_length"],
         )
 
+    @property
+    def input_text(self):
+        return self.inputs["input_text"]
+
+    @property
+    def text_length(self):
+        return self.outputs["text_length"]
+
     def execute(self):
-        if self.inputs["processed_text"] is not None:
-            text_length = len(self.inputs["processed_text"])
+        if self.input_text is not None:
+            text_length = len(self.input_text)
             self.outputs["text_length"] = text_length
+
             print(f"{self.name} output: {self.outputs}")
 
 
@@ -133,7 +140,7 @@ pipeline.add_component(calculate_length)
 # ------------------------------------------------------------------
 # Connect components
 # ------------------------------------------------------------------
-pipeline.connect(process_text, "processed_text", calculate_length, "processed_text")
+pipeline.connect(process_text, "processed_text", calculate_length, "input_text")
 
 # ------------------------------------------------------------------
 # Run pipeline
