@@ -124,6 +124,45 @@ class TextLengthCalculator(BaseComponent):
 
 
 # ------------------------------------------------------------------
+# Sample string int comparator component
+# ------------------------------------------------------------------
+class StringIntComparator(BaseComponent):
+    def __init__(self):
+        super().__init__(
+            "String Int Comparator",
+            input_keys=["input_string", "input_int"],
+            output_keys=["output_string", "output_int"],
+        )
+
+    @property
+    def input_string(self):
+        return self.inputs["input_string"]
+
+    @property
+    def input_int(self):
+        return self.inputs["input_int"]
+
+    @property
+    def output_string(self):
+        return self.outputs["output_string"]
+
+    @property
+    def output_int(self):
+        return self.outputs["output_int"]
+
+    def execute(self):
+        if self.input_string is not None and self.input_int is not None:
+            if len(self.input_string) > self.input_int:
+                self.outputs["output_string"] = self.input_string
+                self.outputs["output_int"] = self.input_int
+                print(f"{self.name} output: {self.outputs}")
+            else:
+                self.outputs["output_string"] = None
+                self.outputs["output_int"] = None
+                print(f"{self.name} output: Condition not met, outputs set to None")
+
+
+# ------------------------------------------------------------------
 # Instantiate components and pipeline
 # ------------------------------------------------------------------
 process_text = TextPreprocessor()
