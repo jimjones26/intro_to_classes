@@ -102,7 +102,7 @@ class TextPreprocessor(BaseComponent):
         if self.inputs["initial_input"] is not None:
             processed_text = self.inputs["initial_input"].lower()
             self.outputs["processed_text"] = processed_text
-            print(f"{self.name} output: {self.outputs}")
+            logging.info(f"{self.name} output: {self.outputs}")
 
 
 # ------------------------------------------------------------------
@@ -128,8 +128,7 @@ class TextLengthCalculator(BaseComponent):
         if self.input_text is not None:
             text_length = len(self.input_text)
             self.outputs["text_length"] = text_length
-
-            print(f"{self.name} output: {self.outputs}")
+            logging.info(f"{self.name} output: {self.outputs}")
 
 
 # ------------------------------------------------------------------
@@ -164,11 +163,13 @@ class StringIntComparator(BaseComponent):
             if len(self.input_string) > self.input_int:
                 self.outputs["output_string"] = self.input_string
                 self.outputs["output_int"] = self.input_int
-                print(f"{self.name} output: {self.outputs}")
+                logging.info(f"{self.name} output: {self.outputs}")
             else:
                 self.outputs["output_string"] = None
                 self.outputs["output_int"] = None
-                print(f"{self.name} output: Condition not met, outputs set to None")
+                logging.info(
+                    f"{self.name} output: output: Condition not met, outputs set to None"
+                )
 
 
 # ------------------------------------------------------------------
