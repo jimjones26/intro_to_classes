@@ -61,6 +61,12 @@ class Pipeline:
             logging.error("No components in the pipeline.")
             return {}
 
+        # Check if initial input keys match the first component's input keys
+        if set(initial_input.keys()) != set(self.components[0].inputs.keys()):
+            logging.warning(
+                "Initial input keys do not match the first component's input keys."
+            )
+
         # Initialize the first component's input
         self.components[0].inputs.update(initial_input)
 
