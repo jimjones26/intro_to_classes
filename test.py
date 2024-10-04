@@ -40,7 +40,7 @@ class Pipeline:
     def connect(self, output_component, output_key, input_component, input_key):
         self.connections[(output_component, output_key)] = (input_component, input_key)
 
-    def run(self, initial_input):
+    def run(self, initial_input: Dict[str, int]) -> Dict[str, int]:
         # Initialize the first component's input as a dictionary
         self.components[0].inputs = initial_input
 
@@ -110,6 +110,6 @@ pipeline.connect(process_text, "processed_text", calculate_length, "processed_te
 # Run pipeline
 # ------------------------------------------------------------------
 final_output = pipeline.run(
-    {"initial_input": "HelLo WorLD IS a GREat sonG about ThE EnD of theE WORLd."}
+    {"initial_input": "HelLo WorLD IS a GREat sonG about ThE EnD of thE WORLd."}
 )
 print("Final output:", final_output)
